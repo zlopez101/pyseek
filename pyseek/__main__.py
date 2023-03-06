@@ -13,37 +13,6 @@ def _version_callback(value: bool) -> None:
         raise typer.Exit()
 
 
-# def get_cik_from_input(company: edgar.centralIndexKey) -> models.CI:
-#     """Get the CIK number from the input
-
-#     Args:
-#         company (edgar.centralIndexKey): The company to get the CIK for
-
-#     Returns:
-#         int: The CIK number
-#     """
-#     try:
-#         return int(company)
-#     except ValueError:
-#         try:
-#             results = edgar.get_cik_number(company)
-#             return edgar.get_cik_number(company).cik_str
-#         except AttributeError:
-#             raise typer.BadParameter(
-#                 f"Multiple results found for ticker {company}: {results}"
-#             )
-#         except ValueError:
-#             raise typer.BadParameter(f"No results found for ticker {company}")
-#         # except Exception:
-#         #     raise typer.BadParameter("Please enter a valid CIK number or ticker")
-#     except TypeError:
-#         raise typer.BadParameter("Please enter a valid CIK number or tickerfsadf")
-#     except Exception:
-#         raise typer.BadParameter(
-#             "Please enter a valid CIK number as an integer or ticker as str"
-#         )
-
-
 def validate_ticker_or_cik(
     company: str, configuration_dir: str = config.CONFIGURATION_DIRECTORY
 ) -> models.CIK:
