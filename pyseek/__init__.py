@@ -1,7 +1,7 @@
 """Top level package for pyseek."""
 
 __app_name__ = "pyseek"
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 (
     SUCCESS,
