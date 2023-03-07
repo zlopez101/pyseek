@@ -1,6 +1,6 @@
 from typer.testing import CliRunner
-from pyseek.__main__ import app
 from pyseek import __app_name__, __main__, __version__
+from pyseek import setup
 
 runner = CliRunner()
 
@@ -12,26 +12,23 @@ def test_version():
 
 
 def test_cli():
-    result = runner.invoke(app, ["--help"])
+    result = runner.invoke(__main__.app, ["--help"])
     assert result.exit_code == 0
     assert "Show this message and exit." in result.output
 
 
 def test_init_cli(configuration_directory):
     # test the help
-
-    result = runner.invoke(app, ["init", "--help"])
+    result = runner.invoke(__main__.app, ["init", "--help"])
     assert result.exit_code == 0
     assert "Initialize the user settings" in result.output
 
     # test the prompt
-    result = runner.invoke(app, ["init"], input="test_user_agent")
+    result = runner.invoke(__main__.app, ["init", "--user-agent", "test_user_agent"])
     assert result.exit_code == 0
-    assert "Please enter a user-agent for browsing SEC EDGAR website" in result.output
-    assert "test_user_agent" in result.output
 
     # test the read_settings
-    result = runner.invoke(app, ["settings"])
+    result = runner.invoke(__main__.app, ["settings"])
     assert result.exit_code == 0
     assert "test_user_agent" in result.output
 
@@ -40,3 +37,7 @@ def test_init_cli(configuration_directory):
     text = company_ticker_file.read_text()
     for company in ["AAPL", "GOOG", "MSFT", "AMZN"]:
         assert company in text
+
+
+# test the prompt
+# test the

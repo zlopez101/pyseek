@@ -4,14 +4,16 @@ from typing import TypeVar
 
 import requests
 from pathlib import Path
-from pyseek.models import CIK
-from pyseek.config import CONFIGURATION_DIRECTORY
+from pyseek import models
+from pyseek import setup
+from pyseek import config
+
 
 SAMPLE_HEADERS = {
     "User-Agent": "Zach Lopez (zachlopez9@gmail.com)",
 }
 
-centralIndexKey = TypeVar("centralIndexKey", str, int, CIK)
+centralIndexKey = TypeVar("centralIndexKey", str, int, models.CIK)
 
 
 def make_request(url: str) -> dict:
@@ -24,6 +26,7 @@ def make_request(url: str) -> dict:
         dict: the json returned
     """
     try:
+        config.get_api_settings()
         r = requests.get(url, headers=SAMPLE_HEADERS)
         r.raise_for_status()
         return r.json()
@@ -43,7 +46,7 @@ def company_from_ticker(ticker: str) -> int:
         int: company information for a given ticker
     """
     ticker = ticker.upper()
-    with open(Path(CONFIGURATION_DIRECTORY) / "company_tickers.json", "r") as fp:
+    with open(Path(setup.CONFIGURATION_DIRECTORY) / "company_tickers.json", "r") as fp:
         data = json.load(fp)
     return [company for company in data.values() if company["ticker"] == ticker]
 
@@ -57,7 +60,7 @@ def company_from_cik(cik: int) -> str:
     Returns:
         str: company information for given cik number
     """
-    with open(Path(CONFIGURATION_DIRECTORY) / "company_tickers.json", "r") as fp:
+    with open(Path(setup.CONFIGURATION_DIRECTORY) / "company_tickers.json", "r") as fp:
         data = json.load(fp)
     return [company for company in data.values() if company["cik_str"] == cik]
 
@@ -71,7 +74,7 @@ def validate_cik(cik) -> int:
     Returns:
         int: the properly formatted string
     """
-    if isinstance(cik, CIK):
+    if isinstance(cik, models.CIK):
         return cik.cik_str
     else:
         # check if the cik can be interpreted as a number, if not then continue

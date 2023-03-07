@@ -1,7 +1,7 @@
 import typer
 from typing import Optional
 from pathlib import Path
-from . import edgar, models, config, utils
+from . import edgar, models, config, utils, setup
 from pyseek import __app_name__, __version__, SUCCESS
 
 app = typer.Typer()
@@ -13,9 +13,7 @@ def _version_callback(value: bool) -> None:
         raise typer.Exit()
 
 
-def validate_ticker_or_cik(
-    company: str, configuration_dir: str = config.CONFIGURATION_DIRECTORY
-) -> models.CIK:
+def validate_ticker_or_cik(company: str) -> models.CIK:
     """Validate the ticker or CIK number
 
     Args:
@@ -67,14 +65,14 @@ def init(
     ),
     download: bool = typer.Option(
         True,
-        "--download",
-        "-d",
+        " /--download",
+        " /-d",
         help="Download company tickers information to configuration directory",
         prompt="Download company tickers information to configuration directory",
     ),
 ):
     """Initialize the user settings"""
-    result = config.init_config(user_agent)  # , config_file_dir)
+    result = config.init_config(user_agent)
     if result == SUCCESS:
         typer.echo("Configuration file created successfully")
         if download:
@@ -84,22 +82,14 @@ def init(
             utils.write_file(
                 tickers,
                 "company_tickers.json",
-                directory=config.CONFIGURATION_DIRECTORY,
+                directory=setup.CONFIGURATION_DIRECTORY,
             )
 
 
 @app.command("settings")
-def api_settings(
-    config_file_dir: str = typer.Option(
-        typer.get_app_dir(__app_name__),
-        "--config-file-dir",
-        "-c",
-        help="Directory to store the configuration file",
-    ),
-) -> dict:
+def api_settings() -> dict:
     """Get the current settings"""
-    config_file = Path(config_file_dir) / "config.ini"
-    apisettings = config.get_api_settings(config_file)
+    apisettings = config.get_api_settings()
     print(apisettings)
 
 

@@ -1,14 +1,13 @@
 import configparser
 
-from pyseek import SUCCESS, DIR_ERROR, FILE_ERROR, CONFIG_ERROR, __app_name__
+from pyseek import SUCCESS, DIR_ERROR, FILE_ERROR, CONFIG_ERROR
 from pathlib import Path
-import typer
-
-CONFIGURATION_DIRECTORY = typer.get_app_dir(__app_name__)
+from pyseek import setup
 
 
 def create_file(
-    configuration_directory: str = CONFIGURATION_DIRECTORY, filename: str = "config.ini"
+    configuration_directory: str = setup.CONFIGURATION_DIRECTORY,
+    filename: str = "config.ini",
 ) -> int:
     """Take a configuration directory and create a file in it.
 
@@ -32,19 +31,20 @@ def create_file(
     return SUCCESS
 
 
-def init_config(user_agent: str, config_file_dir: str = CONFIGURATION_DIRECTORY):
+def init_config(user_agent: str):
     """Called from the pyseek init command
     creates a configuration directory specified at config_file_dir
     and a configuration file in that directory called config.ini.
     The configuration file is a .ini file with a section called API
     """
-    result = create_file(configuration_directory=config_file_dir)
+    f = "config.ini"
+    result = create_file(filename=f)
     if result == SUCCESS:
         config = configparser.ConfigParser()
         config["API"] = {"User-Agent": user_agent}
         config["TickerUpdateFrequency"] = {"Frequency": "never"}
         try:
-            with open(Path(config_file_dir) / "config.ini", "w") as configfile:
+            with open(Path(setup.CONFIGURATION_DIRECTORY) / f, "w") as configfile:
                 config.write(configfile)
         except OSError:
             return CONFIG_ERROR
@@ -53,7 +53,8 @@ def init_config(user_agent: str, config_file_dir: str = CONFIGURATION_DIRECTORY)
         return result
 
 
-def get_api_settings(config_path: Path) -> dict:
+def get_api_settings() -> dict:
+    settings_file = Path(setup.CONFIGURATION_DIRECTORY) / "config.ini"
     config = configparser.ConfigParser()
-    config.read(config_path)
-    return list(config.items("API"))
+    config.read(settings_file)
+    return config.items("API")

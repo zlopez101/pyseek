@@ -1,37 +1,30 @@
-from pyseek.config import (
-    get_api_settings,
-    init_config,
-    # create_configuration_file,
-    create_file,
-)
+from pyseek import config
 from pyseek import SUCCESS, DIR_ERROR, FILE_ERROR, CONFIG_ERROR
 
 
-def test__init_config_file(tmp_path):
+def test__init_config_file(configuration_directory):
     """Test the _init_config_file function"""
-    test_dir = tmp_path / "test_dir"
+    test_dir = configuration_directory / "test_dir"
     test_dir.mkdir(exist_ok=True)
-    result = create_file(test_dir)
+    result = config.create_file(configuration_directory=test_dir)
     assert result == SUCCESS
-    config = test_dir / "config.ini"
-    assert config.exists()
+    config_file = test_dir / "config.ini"
+    assert config_file.exists()
 
 
-def test_init_config_and_read_settings(tmp_path):
+def test_init_config_and_read_settings(configuration_directory):
     """Test the init_config function"""
-    result = init_config("test_user_agent", tmp_path)
+    result = config.init_config("test_user_agent")
     assert result == SUCCESS
-    config_file = tmp_path / "config.ini"
+    config_file = configuration_directory / "config.ini"
     assert config_file.exists()
     assert config_file.is_file()
     content = config_file.read_text()
     assert "test_user_agent" in content
 
 
-def test_temp_dir(tmp_path):
-    """Test the temp_dir fixture"""
-    assert tmp_path.exists()
-    configuration_path = tmp_path / "config.ini"
-    assert not configuration_path.exists()
-    configuration_path.touch(exist_ok=True)
-    assert configuration_path.exists()
+# def test_get_api_settings(set_up):
+#     assert not setup.CONFIGURATION_DIRECTORY == "/home/zlopez/.config/pyseek"
+#     settings = config.get_api_settings()
+#     assert settings
+#     assert "test_user_agent" in settings[0]
