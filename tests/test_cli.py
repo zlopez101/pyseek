@@ -37,7 +37,3 @@ def test_init_cli(configuration_directory):
     text = company_ticker_file.read_text()
     for company in ["AAPL", "GOOG", "MSFT", "AMZN"]:
         assert company in text
-
-
-# test the prompt
-# test the

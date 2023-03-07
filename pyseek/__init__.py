@@ -1,10 +1,7 @@
 """Top level package for pyseek."""
 
 __app_name__ = "pyseek"
-__version__ = "0.2.0"
-# from typer import get_app_dir
-
-# CONFIGURATION_DIRECTORY = get_app_dir(__app_name__)
+__version__ = "0.2.1"
 
 
 (

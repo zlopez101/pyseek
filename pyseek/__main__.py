@@ -127,7 +127,6 @@ def company_concept_categories(
     """Get all the company concepts categories for a given CIK"""
     company = validate_ticker_or_cik(company)
     print(edgar.get_company_concepts_categories(company.cik_str))
-    # utils.write_file(result, company.ticker + "_concepts.json")
 
 
 @app.command()

@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "pyseek"
-version = "0.2.0"
-description = ""
+version = "0.2.1"
+description = "A command line tool for accessing the SEC EDGAR database."
 authors = ["Zach Lopez <zachlopez9@gmail.com>"]
 readme = "README.md"
 
