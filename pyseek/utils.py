@@ -18,8 +18,8 @@ def set_headers() -> dict:
     return {"User-Agent": settings["User-Agent"]}
 
 
-def make_request(url: str) -> dict:
-    """Hanwhidles all the requests calls for the package
+def make_request(url: str, requestTimeout: int = 5) -> dict:
+    """Handles all the requests calls for the package
 
     Args:
         url (str): url to request
@@ -28,13 +28,14 @@ def make_request(url: str) -> dict:
         dict: the json returned
     """
     try:
-        r = requests.get(url, headers=set_headers(), timeout=10)
+        r = requests.get(url, headers=set_headers(), timeout=requestTimeout)
         r.raise_for_status()
         return r.json()
-    except requests.JSONDecodeError:
-        print("there was nothing to return")
     except requests.ConnectionError:
         print("there was a connection error")
+    except requests.JSONDecodeError:
+        print(f"There was a JSON decode error for url: {url}")
+        print(f"Check the url for errors. If the url is correct, try again later.")
 
 
 def company_from_ticker(ticker: str) -> int:
@@ -66,30 +67,37 @@ def company_from_cik(cik: int) -> str:
     return [company for company in data.values() if company["cik_str"] == cik]
 
 
-def validate_cik(cik) -> int:
-    """Validate the CIK for function
+def download_document(
+    cik: centralIndexKey, accession_number: str, primaryDocument: str
+):
+    """Download a company submission
 
     Args:
-        cik (One of CIK, str, int): The central index key to look up
+        cik (central_index_key): CIK, str, int
+        accession_number (str): Accession number of the submission
+        primaryDocument (str): Name of the primary document
 
     Returns:
-        int: the properly formatted string
+        str: The submission as a string
     """
-    if isinstance(cik, models.CIK):
-        return cik.cik_str
+    try:
+        response = requests.get(
+            f"https://www.sec.gov/Archives/edgar/data/{cik}/{accession_number.replace('-', '')}/{primaryDocument}",
+            headers=set_headers(),
+        )
+        response.raise_for_status()
+    except requests.HTTPError as http_err:
+        print(f"HTTP error occurred: {http_err}")
+    except Exception as err:
+        print(f"Other error occurred: {err}")
     else:
-        # check if the cik can be interpreted as a number, if not then continue
-        assert int(cik), "Please use a string that can be interpreted as a number"
-
-        # get the cik all the way to 10 digits long
-        temp = str(cik)
-        while len(temp) < 10:
-            temp = "0" + temp
-        return temp
+        print("Success!")
+    return response.text
 
 
-def write_file(obj: dict, filename: str, directory: str = ""):
-    if directory:
-        os.chdir(directory)
-    with open(Path(directory) / filename, "w") as fp:
+def write_file(
+    obj: dict,
+    filename: str,
+):
+    with open(filename, "w") as fp:
         json.dump(obj, fp, indent=4)

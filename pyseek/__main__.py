@@ -121,13 +121,34 @@ def company_facts(
 
 
 @app.command()
-def company_concepts(
+def company_concept_categories(
     company: str = typer.Argument(..., help="CIK number or ticker of the company"),
-) -> dict:
-    """Get all the company concepts for a given CIK"""
+) -> list:
+    """Get all the company concepts categories for a given CIK"""
     company = validate_ticker_or_cik(company)
     print(edgar.get_company_concepts_categories(company.cik_str))
     # utils.write_file(result, company.ticker + "_concepts.json")
+
+
+@app.command()
+def company_facts_by_concept(
+    company: str = typer.Argument(..., help="CIK number or ticker of the company"),
+    concept: str = typer.Argument(..., help="The concept category to retrieve"),
+) -> dict:
+    """Returns all facts related to a company concept category
+
+    Args:
+        company (str, optional): _description_. Defaults to typer.Argument(..., help='CIK number or ticker of the company').
+        concept (str, optional): _description_. Defaults to typer.Argument(..., help='The concept category to retrieve').
+
+    Raises:
+        typer.BadParameter: _description_
+
+    Returns:
+        dict: _description_
+    """
+    company = validate_ticker_or_cik(company)
+    print(edgar.get_company_facts_by_concept(company.cik_str, concept))
 
 
 @app.command()

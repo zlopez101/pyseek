@@ -1,8 +1,8 @@
 import json
 from typing import List, TypeVar, Union
 import requests
-from pyseek.models import CIK, Concept
-from pyseek.utils import *
+from pyseek.models import CIK
+from pyseek.utils import make_request, download_document
 
 central_index_key = TypeVar("central_index_key", str, int, CIK)
 
@@ -44,7 +44,6 @@ def get_all_company_submissions(cik: central_index_key) -> dict:
         dict: Filing history with metadata
     """
 
-    cik = validate_cik(cik)
     return make_request(f"https://data.sec.gov/submissions/CIK{cik}.json")
 
 
@@ -57,7 +56,6 @@ def get_all_company_facts(cik: central_index_key) -> dict:
     Returns:
         dict: metadata, along with time series of different company concepts
     """
-    cik = validate_cik(cik)
     return make_request(f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik}.json")
 
 
@@ -71,12 +69,10 @@ def get_company_concepts_categories(cik: central_index_key) -> List[str]:
         List[str]: list of the categories that are searchable
     """
     cats = get_all_company_facts(cik)
-    return list(cats.get("categories").keys())
+    return cats.get("facts").keys()
 
 
-def get_company_concepts_by_category(
-    cik: central_index_key, category: str
-) -> List[str]:
+def get_company_facts_by_concept(cik: central_index_key, category: str) -> List[str]:
     """The SEC edgar api supports getting just the data relevant to the gaap figures
 
     Args:
@@ -101,7 +97,6 @@ def get_company_fact(fact: str, cik: central_index_key) -> dict:
     """ """"""
     """The xbrl/frames API aggregates one fact for each reporting entity that is last filed that most closely fits the calendrical period requested.
     This API supports for annual, quarterly and instantaneous data"""
-    cik = validate_cik(cik)
     return make_request(f"https:/data.sec.gov/api/xbrl/companyconcept/CIK/{cik}")
 
 
@@ -124,20 +119,7 @@ def download_company_submission(
     Returns:
         str: The submission as a string
     """
-    cik = validate_cik(cik)
-    try:
-        response = requests.get(
-            f"https://www.sec.gov/Archives/edgar/data/{cik}/{accession_number.replace('-', '')}/{primaryDocument}",
-            headers=SAMPLE_HEADERS,
-        )
-        response.raise_for_status()
-    except requests.HTTPError as http_err:
-        print(f"HTTP error occurred: {http_err}")
-    except Exception as err:
-        print(f"Other error occurred: {err}")
-    else:
-        print("Success!")
-    return response.text
+    return download_document(cik, accession_number, primaryDocument)
 
 
 if __name__ == "__main__":
