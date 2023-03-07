@@ -1,5 +1,5 @@
 import configparser
-
+from typing import List
 from pyseek import SUCCESS, DIR_ERROR, FILE_ERROR, CONFIG_ERROR
 from pathlib import Path
 from pyseek import setup
@@ -53,8 +53,14 @@ def init_config(user_agent: str):
         return result
 
 
-def get_api_settings() -> dict:
+def get_api_settings() -> configparser.SectionProxy:
+    """Get the API settings from the config file"""
     settings_file = Path(setup.CONFIGURATION_DIRECTORY) / "config.ini"
     config = configparser.ConfigParser()
     config.read(settings_file)
-    return config.items("API")
+    return config["API"]
+
+
+if __name__ == "__main__":
+    setting = get_api_settings()
+    print(setting)

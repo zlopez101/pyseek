@@ -90,7 +90,7 @@ def init(
 def api_settings() -> dict:
     """Get the current settings"""
     apisettings = config.get_api_settings()
-    print(apisettings)
+    print(list(apisettings.items()))
 
 
 @app.command()

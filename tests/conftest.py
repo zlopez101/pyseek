@@ -1,5 +1,5 @@
 import pytest
-from pyseek import setup
+from pyseek import setup, config
 
 
 @pytest.fixture
@@ -17,8 +17,8 @@ def configuration_directory(monkeypatch, tmp_path):
     return tmp_path
 
 
-# @pytest.fixture
-# def set_up(configuration_directory):
-#     """Set up the test environment"""
-#     config.init_config("test_user_agent")
-#     return configuration_directory
+@pytest.fixture
+def set_up(configuration_directory):
+    """Set up the test environment"""
+    config.init_config("test_user_agent")
+    return configuration_directory

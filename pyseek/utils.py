@@ -9,15 +9,17 @@ from pyseek import setup
 from pyseek import config
 
 
-SAMPLE_HEADERS = {
-    "User-Agent": "Zach Lopez (zachlopez9@gmail.com)",
-}
-
 centralIndexKey = TypeVar("centralIndexKey", str, int, models.CIK)
 
 
+def set_headers() -> dict:
+    """Set the headers for the requests call"""
+    settings = config.get_api_settings()
+    return {"User-Agent": settings["User-Agent"]}
+
+
 def make_request(url: str) -> dict:
-    """Handles all the requests calls for the package
+    """Hanwhidles all the requests calls for the package
 
     Args:
         url (str): url to request
@@ -26,8 +28,7 @@ def make_request(url: str) -> dict:
         dict: the json returned
     """
     try:
-        config.get_api_settings()
-        r = requests.get(url, headers=SAMPLE_HEADERS)
+        r = requests.get(url, headers=set_headers(), timeout=10)
         r.raise_for_status()
         return r.json()
     except requests.JSONDecodeError:
