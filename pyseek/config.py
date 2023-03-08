@@ -1,3 +1,5 @@
+"""Sets the configuration files for pyseek, handles reading and writing to the configuration files"""
+
 import configparser
 from typing import List
 from pyseek import SUCCESS, DIR_ERROR, FILE_ERROR, CONFIG_ERROR

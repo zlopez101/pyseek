@@ -1,3 +1,5 @@
+"""Holds the main entry point for the CLI"""
+
 import typer
 from typing import Optional
 from pathlib import Path

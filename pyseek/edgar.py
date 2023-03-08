@@ -1,6 +1,7 @@
+"""Defines the functions for interacting with the SEC Edgar API"""
+
 import json
-from typing import List, TypeVar, Union
-import requests
+from typing import List, TypeVar
 from pyseek.models import CIK
 from pyseek.utils import make_request, download_document
 

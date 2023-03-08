@@ -1,3 +1,8 @@
+"""Holds the constants for configuration file and directory
+
+This module is separated so that the configuration file and directory can be mocked in testing
+"""
+
 from pathlib import Path
 
 import typer

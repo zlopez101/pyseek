@@ -1,3 +1,6 @@
+"""Holds the utilities for the package"""
+
+
 import json
 from typing import TypeVar
 
