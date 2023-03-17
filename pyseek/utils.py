@@ -2,14 +2,13 @@
 
 
 import json
+from pathlib import Path
 from typing import TypeVar
 
 import requests
-from pathlib import Path
-from pyseek import models
-from pyseek import setup
-from pyseek import config
+from typer import BadParameter
 
+from pyseek import config, models, setup
 
 centralIndexKey = TypeVar("centralIndexKey", str, int, models.CIK)
 
@@ -36,8 +35,10 @@ def make_request(url: str, requestTimeout: int = 5) -> dict:
     except requests.ConnectionError:
         print("there was a connection error")
     except requests.JSONDecodeError:
-        print(f"There was a JSON decode error for url: {url}")
+        print(f"There was no JSON response for url: {url}")
         print(f"Check the url for errors. If the url is correct, try again later.")
+    except requests.ReadTimeout:
+        print("the server did not respond in time")
 
 
 def company_from_ticker(ticker: str) -> int:
@@ -100,6 +101,59 @@ def download_document(
 def write_file(
     obj: dict,
     filename: str,
+    directory: str = None,
 ):
+    if directory:
+        filename = Path(directory) / filename
     with open(filename, "w") as fp:
         json.dump(obj, fp, indent=4)
+
+
+def validate_ticker_or_cik(company: str) -> models.CIK:
+    """Validate the ticker or CIK number
+
+    Args:
+        company (str): either the company ticker or the company cik number in str format
+
+    Raises:
+        typer.BadParameter: _description_
+        typer.BadParameter: _description_
+
+    Returns:
+        models.CIK: company information with keys "ticker", "name", "cik_str"
+    """
+    try:
+        company = int(company)
+        validation = company_from_cik(company)
+        if not validation:
+            raise BadParameter(f"No results found for CIK {company}")
+        return models.CIK(**validation[0])
+    except ValueError:
+        result = company_from_ticker(company)
+        if result:
+            return models.CIK(**result[0])
+        else:
+            raise BadParameter(f"No results found for ticker {company}")
+
+
+def validate_calendrical_period(period: str) -> str:
+    """Validate the calendrical period
+
+    Args:
+        period (str): the period to validate
+
+    Raises:
+        typer.BadParameter: _description_
+
+    Returns:
+        str: the validated period
+    """
+
+
+def validate_submission_record(company: str = None, record: str = None) -> str:
+    if not record:
+        record = f"{company}_submissions.csv"
+    else:
+        if not record.endswith(".csv"):
+            record = record + ".csv"
+    return record

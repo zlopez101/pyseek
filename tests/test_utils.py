@@ -15,9 +15,11 @@ def test_utils_make_request(set_up, capsys):
     assert result["headers"]["User-Agent"] == "test_user_agent"
 
     # confirm timeout is set
+    # and response is printed
     url = "https://httpbin.org/delay/8"
-    with pytest.raises(requests.exceptions.ReadTimeout):
-        utils.make_request(url, requestTimeout=3)
+    utils.make_request(url, requestTimeout=3)
+    captured = capsys.readouterr()
+    assert "the server did not respond in time" in captured.out
 
     # confirm connection error is set
     url = "https://httpbin.org/status/404"
@@ -29,4 +31,10 @@ def test_utils_make_request(set_up, capsys):
     url = "https://httpbin.org/"
     utils.make_request(url)
     captured = capsys.readouterr()
-    assert "There was a JSON decode error for url: https://httpbin.org/" in captured.out
+    assert "There was no JSON response for url: https://httpbin.org/" in captured.out
+
+
+def test_set_headers(set_up):
+    """Test the set_headers function"""
+    result = utils.set_headers()
+    assert result["User-Agent"] == "test_user_agent"

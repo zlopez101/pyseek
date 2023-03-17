@@ -2,10 +2,10 @@
 
 import json
 from typing import List, TypeVar
-from pyseek.models import CIK
+from pyseek import models
 from pyseek.utils import make_request, download_document
 
-central_index_key = TypeVar("central_index_key", str, int, CIK)
+central_index_key = TypeVar("central_index_key", str, int, models.CIK)
 
 
 def get_cik_numbers() -> dict:
@@ -13,7 +13,7 @@ def get_cik_numbers() -> dict:
     return make_request("https://www.sec.gov/files/company_tickers.json")
 
 
-def get_cik_number(company_ticker: str) -> List[CIK]:
+def get_cik_number(company_ticker: str) -> List[models.CIK]:
     """Central Index Key The Central Index Key (CIK) is used on the SEC's computer systems to identify corporations and individual people who have filed disclosure with the SEC.
 
     Args:
@@ -24,7 +24,7 @@ def get_cik_number(company_ticker: str) -> List[CIK]:
     """
     data = make_request("https://www.sec.gov/files/company_tickers.json")
     data = [data[key] for key in data.keys()]
-    results = [CIK(**res) for res in data if res["ticker"] == company_ticker]
+    results = [models.CIK(**res) for res in data if res["ticker"] == company_ticker]
     if len(results) == 1:
         return results[0]
     elif len(results) == 0:
@@ -58,6 +58,23 @@ def get_all_company_facts(cik: central_index_key) -> dict:
         dict: metadata, along with time series of different company concepts
     """
     return make_request(f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik}.json")
+
+
+def get_company_concept(
+    cik: central_index_key, concept: str, taxonomy: str = "us-gaap"
+) -> dict:
+    """Get the concept for a given company
+
+    Args:
+        cik (central_index_key): CIK, str, int
+        concept (str): the concept to search for
+
+    Returns:
+        dict: metadata, along with time series of different company concepts
+    """
+    return make_request(
+        f"https://data.sec.gov/api/xbrl/companyconcept/CIK{cik}/{taxonomy}/{concept}.json"
+    )
 
 
 def get_company_concepts_categories(cik: central_index_key) -> List[str]:
@@ -101,7 +118,7 @@ def get_company_fact(fact: str, cik: central_index_key) -> dict:
     return make_request(f"https:/data.sec.gov/api/xbrl/companyconcept/CIK/{cik}")
 
 
-def get_frames(fact: str, period: str, unit: str) -> dict:
+def get_frames(fact: str, period: str, unit: str = "USD") -> dict:
     return make_request(
         f"https:/data.sec.gov/api/xbrl/frames/{fact}/{unit}/{period}.json"
     )

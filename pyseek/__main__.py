@@ -2,44 +2,17 @@
 
 import typer
 from typing import Optional
-from pathlib import Path
-from . import edgar, models, config, utils, setup
+from . import _read, edgar, models, config, utils, setup, submissions
 from pyseek import __app_name__, __version__, SUCCESS
 
 app = typer.Typer()
+app.add_typer(submissions.app, name="submissions")
 
 
 def _version_callback(value: bool) -> None:
     if value:
         typer.echo(f"{__app_name__} v{__version__}")
         raise typer.Exit()
-
-
-def validate_ticker_or_cik(company: str) -> models.CIK:
-    """Validate the ticker or CIK number
-
-    Args:
-        company (str): either the company ticker or the company cik number in str format
-
-    Raises:
-        typer.BadParameter: _description_
-        typer.BadParameter: _description_
-
-    Returns:
-        models.CIK: company information with keys "ticker", "name", "cik_str"
-    """
-    try:
-        company = int(company)
-        validation = utils.company_from_cik(company)
-        if not validation:
-            raise typer.BadParameter(f"No results found for CIK {company}")
-        return models.CIK(**validation[0])
-    except ValueError:
-        result = utils.company_from_ticker(company)
-        if result:
-            return models.CIK(**result[0])
-        else:
-            raise typer.BadParameter(f"No results found for ticker {company}")
 
 
 @app.callback()
@@ -82,9 +55,7 @@ def init(
             tickers = edgar.get_cik_numbers()
             config.create_file(filename="company_tickers.json")
             utils.write_file(
-                tickers,
-                "company_tickers.json",
-                directory=setup.CONFIGURATION_DIRECTORY,
+                tickers, "company_tickers.json", directory=setup.CONFIGURATION_DIRECTORY
             )
 
 
@@ -115,23 +86,53 @@ def get_cik(
 @app.command()
 def company_facts(
     company: str = typer.Argument(..., help="CIK number or ticker of the company"),
+    show_concepts_categories: bool = typer.Option(
+        False,
+        "--concepts",
+        "-c",
+        help="Print the company concepts categories for the company",
+    ),
 ) -> dict:
     """Get all the company facts for a given company"""
-    company = validate_ticker_or_cik(company)
+    company = utils.validate_ticker_or_cik(company)
     result = edgar.get_all_company_facts(company.cik_str)
     utils.write_file(result, company.ticker + "_facts.json")
+    if show_concepts_categories:
+        print(result.get("facts").keys())
 
 
 @app.command()
+def company_concept(
+    company: str = typer.Argument(..., help="CIK number or ticker of the company"),
+    concept: str = typer.Argument(..., help="The concept category to retrieve"),
+) -> dict:
+    """Returns all facts related to a company concept category
+
+    Args:
+        company (str, optional): _description_. Defaults to typer.Argument(..., help='CIK number or ticker of the company').
+        concept (str, optional): _description_. Defaults to typer.Argument(..., help='The concept category to retrieve').
+
+    Raises:
+        typer.BadParameter: _description_
+
+    Returns:
+        dict: _description_
+    """
+    company = utils.validate_ticker_or_cik(company)
+    result = edgar.get_company_concept(company.cik_str, concept)
+    utils.write_file(result, company.ticker + "_" + concept + ".json")
+
+
+@app.command(deprecated=True)
 def company_concept_categories(
     company: str = typer.Argument(..., help="CIK number or ticker of the company"),
 ) -> list:
     """Get all the company concepts categories for a given CIK"""
-    company = validate_ticker_or_cik(company)
+    company = utils.validate_ticker_or_cik(company)
     print(edgar.get_company_concepts_categories(company.cik_str))
 
 
-@app.command()
+@app.command(deprecated=True)
 def company_facts_by_concept(
     company: str = typer.Argument(..., help="CIK number or ticker of the company"),
     concept: str = typer.Argument(..., help="The concept category to retrieve"),
@@ -148,18 +149,30 @@ def company_facts_by_concept(
     Returns:
         dict: _description_
     """
-    company = validate_ticker_or_cik(company)
+    company = utils.validate_ticker_or_cik(company)
     print(edgar.get_company_facts_by_concept(company.cik_str, concept))
 
 
 @app.command()
 def company_submissions(
-    company: int = typer.Argument(..., help="CIK number or ticker of the company"),
+    company: str = typer.Argument(..., help="CIK number or ticker of the company"),
+    filename: str = typer.Option(
+        None, "--filename", "-f", help="Filename to save the data"
+    ),
 ) -> dict:
-    """Get all the company submissions for a given CIK"""
-    company = validate_ticker_or_cik(company)
+    """Get all the company submissions for a given CIK, returns a csv"""
+    company = utils.validate_ticker_or_cik(company)
     results = edgar.get_all_company_submissions(company.cik_str)
-    config.write_file(results, company.ticker + "_submissions.json")
+    # utils.write_file(results, company.ticker + "_submissions.json")
+    df = _read.read_submissions(results)
+
+    if not filename:
+        filename = f"{company.ticker}_submissions.csv"
+    else:
+        if not filename.endswith(".csv"):
+            filename = filename + ".csv"
+
+    df.to_csv(filename, index=False)
 
 
 @app.command()
